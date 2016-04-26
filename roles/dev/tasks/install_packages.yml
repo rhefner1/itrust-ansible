@@ -1,0 +1,41 @@
+---
+
+- name: Install packages
+  become: yes
+  package: name={{ item }} state=latest
+  with_items:
+    - "{{ eclipse_package }}"
+    - "{{ jdk_package }}"
+    - "{{ maven_package }}"
+    - "{{ mysql_package }}"
+
+- name: Enable MySQL lowercase table names
+  become: yes
+  ini_file: >
+    dest=/etc/my.cnf
+    section=mysqld
+    option=lower_case_table_names
+    value=1
+    backup=yes
+
+- name: Enable MySQL
+  become: yes
+  service: name={{ item }} state=started enabled=yes
+  tags: packages
+  with_items:
+    - "{{ mysql_service }}"
+
+- name: Install Tomcat
+  unarchive: >
+    src={{ tomcat_url }}
+    dest={{ eclipse_workspace }} copy=no
+
+- name: Download JDBC Connector
+  unarchive: >
+    src={{ jdbc_url }}
+    dest={{ eclipse_workspace }} copy=no
+
+- name: Install JDBC Connector to Tomcat
+  copy: >
+    src="{{ eclipse_workspace }}/mysql-connector-java-{{ jdbc_version }}/mysql-connector-java-{{ jdbc_version }}-bin.jar"
+    dest={{ eclipse_workspace }}/apache-tomcat-{{ tomcat_version}}/lib/

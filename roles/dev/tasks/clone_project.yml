@@ -1,0 +1,10 @@
+---
+
+- name: Create code directory
+  file: path={{ code_directory }} state=directory
+
+- name: Clone iTrust repository
+  git: >
+    repo={{ itrust_repo }}
+    dest={{ code_directory }}
+    accept_hostkey=yes
